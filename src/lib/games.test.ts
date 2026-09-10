@@ -5,6 +5,7 @@ import type { Database } from './db';
 import {
     getAllGames,
     getAllGameIds,
+    getFilteredGames,
     getGameById,
 } from './games';
 
@@ -62,5 +63,59 @@ describe('games data-access helpers', () => {
     it('returns null for a non-existent game', async () => {
         await seedGames(db, 2);
         expect(await getGameById(db, 99999)).toBeNull();
+    });
+
+    it('filters games by category and publisher with stable ordering', async () => {
+        const [strategy, puzzle] = await db
+            .insert(categories)
+            .values([
+                { name: 'Strategy', description: 'strategy' },
+                { name: 'Puzzle', description: 'puzzle' },
+            ])
+            .returning({ id: categories.id });
+        const [firstPublisher, secondPublisher] = await db
+            .insert(publishers)
+            .values([
+                { name: 'Pub One', description: 'first' },
+                { name: 'Pub Two', description: 'second' },
+            ])
+            .returning({ id: publishers.id });
+
+        await db.insert(games).values([
+            {
+                title: 'Strategy One',
+                description: 'First',
+                starRating: 4,
+                categoryId: strategy.id,
+                publisherId: firstPublisher.id,
+            },
+            {
+                title: 'Puzzle One',
+                description: 'Second',
+                starRating: 4,
+                categoryId: puzzle.id,
+                publisherId: firstPublisher.id,
+            },
+            {
+                title: 'Strategy Two',
+                description: 'Third',
+                starRating: 4,
+                categoryId: strategy.id,
+                publisherId: secondPublisher.id,
+            },
+        ]);
+
+        const filtered = await getFilteredGames(db, {
+            categoryIds: [strategy.id],
+            publisherIds: [secondPublisher.id],
+        });
+        expect(filtered.map((game) => game.title)).toEqual(['Strategy Two']);
+    });
+
+    it('treats empty filter selections as no filters', async () => {
+        await seedGames(db, 2);
+        const all = await getAllGames(db);
+        const filtered = await getFilteredGames(db, { categoryIds: [], publisherIds: [] });
+        expect(filtered.map((game) => game.id)).toEqual(all.map((game) => game.id));
     });
 });

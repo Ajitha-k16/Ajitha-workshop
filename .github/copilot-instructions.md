@@ -13,6 +13,8 @@ This is a crowdfunding platform for games with a developer theme. The applicatio
 - **NEVER commit or push to main automatically unless explicitly instructed to do so**
 
 ## Code standards
+- Every exported function should have a TSDoc comment describing its purpose, parameters, and return value.
+- Before imports or any code, add a comment block to the file that explains its purpose.
 
 ### Required Before Each Commit
 
