@@ -42,6 +42,14 @@ npm run build      # prebuild migrates + seeds, then builds the static site
 npm run preview
 ```
 
+## Filtering the game catalog
+
+The home page provides accessible checkbox filters for categories and
+publishers. Multiple selections within either group are combined together,
+while selecting both groups narrows the results to games matching both. The
+filtering runs client-side over the statically rendered game cards, so it does
+not require a runtime API.
+
 ## Database
 
 The SQLite database is built from `db/games.csv` — there is no live data to migrate.
